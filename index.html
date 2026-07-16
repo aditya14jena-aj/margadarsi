@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Corridor — WC26 Volunteer Ops</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-brand">
+    <span class="brand-mark">◈</span>
+    <span class="brand-name">CORRIDOR</span>
+    <span class="brand-sub">Volunteer Field Console — WC26</span>
+  </div>
+  <div class="topbar-readout">
+    <div class="readout-item">
+      <span class="readout-label">Ambient</span>
+      <span class="readout-value" id="topbar-temp">—</span>
+    </div>
+    <div class="readout-item">
+      <span class="readout-label">Zone</span>
+      <span class="readout-value" id="topbar-zone">—</span>
+    </div>
+    <div class="readout-item live">
+      <span class="pulse-dot"></span>
+      <span class="readout-label">LIVE</span>
+    </div>
+  </div>
+</header>
+
+<main class="console">
+
+  <!-- LEFT: VOLUNTEER DEVICE -->
+  <section class="device-column">
+    <div class="device-label">
+      <span class="eyebrow">01 — FIELD DEVICE</span>
+      <h1>Volunteer Handset</h1>
+      <p class="device-desc">What the volunteer sees and reads aloud to the fan.</p>
+    </div>
+
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+
+        <div class="phone-status">
+          <span>STAFF PASS · ZONE 4</span>
+          <span id="clock">09:41</span>
+        </div>
+
+        <div class="phone-id">
+          <div class="id-badge">V</div>
+          <div>
+            <div class="id-name">Volunteer</div>
+            <div class="id-loc" id="loc-display">Corridor 3 — Sector B</div>
+          </div>
+        </div>
+
+        <div class="triage" id="triage-card">
+          <div class="triage-top">
+            <span class="triage-eyebrow">STATUS</span>
+            <span class="triage-badge" id="urgency-text">STANDBY</span>
+          </div>
+          <div class="triage-meta">
+            <span id="intent-tag">Intent —</span>
+            <span class="dot-sep">·</span>
+            <span id="color-tag">Alert —</span>
+          </div>
+        </div>
+
+        <div class="script" id="script-box">
+          Enter a translated fan question below. Corridor will read the live gate state and generate exactly what to say.
+        </div>
+
+        <textarea id="query-input" placeholder="e.g. It's too hot, my grandmother feels dizzy, we're trying to reach Gate A but the crowd isn't moving..."></textarea>
+
+        <button id="analyze-btn" onclick="submitQuery()">
+          <span class="btn-icon">▶</span> Analyze &amp; Generate Script
+        </button>
+
+        <div class="quick-row">
+          <button class="chip" onclick="quickFill('Where is the nearest bathroom?')">Amenity</button>
+          <button class="chip" onclick="quickFill('My chest hurts and I can not breathe well')">Critical</button>
+          <button class="chip" onclick="quickFill('Which gate is fastest to exit right now?')">Transit</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RIGHT: OPS DECK -->
+  <section class="ops-column">
+
+    <div class="ops-block">
+      <span class="eyebrow">02 — LIVE CORRIDOR MAP</span>
+      <h2>Sector B Wayfinding</h2>
+      <p class="ops-desc">Gate load reflects the state judges control below. Pulse rate = congestion.</p>
+      <div class="map-frame">
+        <svg id="gate-map" viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+
+    <div class="ops-block">
+      <span class="eyebrow">03 — JURY GOD MODE</span>
+      <h2>Simulate Conditions</h2>
+      <p class="ops-desc">Overwrites live stadium state. The handset reacts instantly, no refresh.</p>
+
+      <div class="god-grid">
+        <button class="god-btn caution" onclick="simulateOvercrowding()">
+          <span class="god-icon">▲</span>
+          <span>Gate A Overcrowding</span>
+        </button>
+        <button class="god-btn critical" onclick="simulateHeatSpike()">
+          <span class="god-icon">☼</span>
+          <span>Heat Spike Warning</span>
+        </button>
+        <button class="god-btn critical" onclick="simulateIncident()">
+          <span class="god-icon">✕</span>
+          <span>Flag Gate A Incident</span>
+        </button>
+        <button class="god-btn reset" onclick="resetState()">
+          <span class="god-icon">↺</span>
+          <span>Reset to Normal</span>
+        </button>
+      </div>
+
+      <details class="raw-json">
+        <summary>Custom JSON override</summary>
+        <textarea id="custom-json" rows="8" placeholder='{ "full_state": { ... } }'></textarea>
+        <button class="push-btn" onclick="pushCustomState()">Push State</button>
+      </details>
+    </div>
+
+    <div class="ops-block">
+      <span class="eyebrow">04 — RAW STATE</span>
+      <pre id="state-viewer">Loading…</pre>
+    </div>
+
+  </section>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

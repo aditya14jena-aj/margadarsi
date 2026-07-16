@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Corridor — WC26 Volunteer Ops</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0A0B0D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-mode="volunteer">
+
+<a href="#main-content" class="skip-link">Skip to main content</a>
+
+<!-- Reusable icon defs, referenced via <use> so markup stays clean -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="icon-mic" viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5-11-6.5Z" fill="currentColor"/></symbol>
+    <symbol id="icon-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/></symbol>
+    <symbol id="icon-alert" viewBox="0 0 24 24"><path d="M12 3.5 22 20H2L12 3.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5.2M20 12a8 8 0 0 1-14 5.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18 4v4h-4M6 20v-4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v13m0 0-4.5-4.5M12 16l4.5-4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 19.5h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="icon-map" viewBox="0 0 24 24"><path d="M9 4 3 6.5v13L9 17l6 2.5 6-2.5v-13L15 6.5 9 4Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 4v13M15 6.5v13" stroke="currentColor" stroke-width="1.7"/></symbol>
+    <symbol id="icon-sliders" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h13M20 18h0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="15" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="16" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="icon-list" viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="4" cy="6" r="1.3" fill="currentColor"/><circle cx="4" cy="12" r="1.3" fill="currentColor"/><circle cx="4" cy="18" r="1.3" fill="currentColor"/></symbol>
+    <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="icon-scale" viewBox="0 0 24 24"><path d="M12 3v18M7 21h10M5 7l3.5-1.5L12 7M19 7l-3.5-1.5L12 7M3 7l2 5a2.2 2.2 0 0 0 4 0l2-5M15 7l2 5a2.2 2.2 0 0 0 4 0l2-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="icon-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <div class="topbar-brand">
+    <span class="brand-mark" aria-hidden="true">C</span>
+    <div class="brand-text">
+      <span class="brand-name">Corridor</span>
+      <span class="brand-sub">Volunteer Field Console — MetLife Stadium, WC26</span>
+    </div>
+  </div>
+
+  <div class="mode-switch" role="group" aria-label="View mode">
+    <button class="mode-btn" id="mode-volunteer-btn" data-mode="volunteer" aria-pressed="true">
+      <svg class="icon" aria-hidden="true"><use href="#icon-user"/></svg> Volunteer
+    </button>
+    <button class="mode-btn" id="mode-judge-btn" data-mode="judge" aria-pressed="false">
+      <svg class="icon" aria-hidden="true"><use href="#icon-scale"/></svg> Judge
+    </button>
+  </div>
+
+  <div class="topbar-readout">
+    <div class="readout-item">
+      <span class="readout-label">Temp</span>
+      <span class="readout-value" id="topbar-temp">—</span>
+    </div>
+    <div class="readout-item">
+      <span class="readout-label">Zone</span>
+      <span class="readout-value" id="topbar-zone">—</span>
+    </div>
+    <div class="readout-item live">
+      <span class="pulse-dot" aria-hidden="true"></span>
+      <span class="readout-label">Live</span>
+    </div>
+  </div>
+</header>
+
+<!-- Judge Mode sub-navigation. Only shown when in Judge Mode, on narrow
+     viewports where all three panels can't fit on screen at once. -->
+<nav class="tabbar" role="tablist" aria-label="Judge board sections">
+  <button class="tab-btn" role="tab" aria-selected="true" aria-controls="panel-map" id="tab-map" data-tab="map">
+    <svg class="icon" aria-hidden="true"><use href="#icon-map"/></svg> Map
+  </button>
+  <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-simulate" id="tab-simulate" data-tab="simulate">
+    <svg class="icon" aria-hidden="true"><use href="#icon-sliders"/></svg> Simulate
+  </button>
+  <button class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-log" id="tab-log" data-tab="log">
+    <svg class="icon" aria-hidden="true"><use href="#icon-list"/></svg> Log
+  </button>
+</nav>
+
+<main class="console" id="main-content" data-active-tab="map">
+
+  <!-- VOLUNTEER MODE -->
+  <section class="device-column" data-mode-view="volunteer" id="panel-volunteer">
+    <div class="device-label">
+      <span class="eyebrow">Field Device</span>
+      <h1>Volunteer Console</h1>
+      <p class="device-desc">Speak or type a fan's question. Corridor reads live conditions and generates exactly what to say — then plays it back aloud.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-header-id">
+          <span class="id-badge" aria-hidden="true">V</span>
+          <div>
+            <div class="id-name">Volunteer</div>
+            <div class="id-loc" id="loc-display">Corridor 3 — Sector B</div>
+          </div>
+        </div>
+        <span class="panel-header-time" id="clock">—</span>
+      </div>
+
+      <div class="panel-body">
+        <div class="triage" id="triage-card" role="status" aria-live="polite" aria-atomic="true">
+          <div class="triage-top">
+            <span class="triage-eyebrow">Status</span>
+            <span class="triage-badge" id="urgency-text">Standby</span>
+          </div>
+          <div class="triage-meta">
+            <span id="intent-tag">Intent —</span>
+            <span class="dot-sep" aria-hidden="true">·</span>
+            <span id="color-tag">Alert —</span>
+          </div>
+          <div class="triage-flags" id="triage-flags"></div>
+          <button class="notify-btn" id="notify-btn" onclick="notifySupervisor()" hidden>
+            <svg class="icon" aria-hidden="true"><use href="#icon-alert"/></svg> Notify Supervisor
+          </button>
+        </div>
+
+        <div class="script-wrap">
+          <div class="pipeline-steps" id="pipeline-steps" aria-hidden="true"></div>
+          <div class="script-label" id="volunteer-script-label">Volunteer script (English)</div>
+          <div class="script" id="script-box" aria-live="polite" aria-labelledby="volunteer-script-label">
+            Enter or speak a fan's question below in any language. Corridor translates it, computes a safe route, and generates what to say.
+          </div>
+          <div class="fan-script-wrap" id="fan-script-wrap" hidden>
+            <div class="script-label" id="fan-script-label">Fan script (<span id="fan-lang-label">—</span>)</div>
+            <div class="script fan-script" id="fan-script-box" aria-labelledby="fan-script-label"></div>
+          </div>
+          <div class="speak-row">
+            <button class="speak-btn" id="speak-btn" onclick="speakScript('volunteer')" title="Read English script aloud" disabled>
+              <svg class="icon" aria-hidden="true"><use href="#icon-play"/></svg> <span id="speak-label">Play for volunteer</span>
+            </button>
+            <button class="speak-btn" id="speak-fan-btn" onclick="speakScript('fan')" title="Read script aloud in fan's language" disabled>
+              <svg class="icon" aria-hidden="true"><use href="#icon-play"/></svg> <span id="speak-fan-label">Play for fan</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="lang-row">
+          <label for="lang-select">Fan speaks</label>
+          <select id="lang-select">
+            <option value="auto">Auto-detect (English mic)</option>
+            <option value="es-ES">Español</option>
+            <option value="pt-BR">Português</option>
+            <option value="fr-FR">Français</option>
+            <option value="ar-SA">العربية</option>
+            <option value="zh-CN">中文</option>
+            <option value="hi-IN">हिन्दी</option>
+            <option value="de-DE">Deutsch</option>
+            <option value="it-IT">Italiano</option>
+            <option value="ja-JP">日本語</option>
+            <option value="ko-KR">한국어</option>
+            <option value="ru-RU">Русский</option>
+          </select>
+        </div>
+
+        <div class="input-row">
+          <label for="query-input" class="visually-hidden">Fan's question</label>
+          <textarea id="query-input" placeholder="Type, or press the mic and speak in the fan's language..."></textarea>
+          <button class="mic-btn" id="mic-btn" onclick="toggleMic()" title="Speak instead of typing" aria-label="Speak instead of typing" aria-pressed="false">
+            <svg class="icon" aria-hidden="true"><use href="#icon-mic"/></svg>
+          </button>
+        </div>
+
+        <button id="analyze-btn" onclick="submitQuery()">
+          <span id="analyze-btn-label">Analyze &amp; Generate Script</span>
+        </button>
+
+        <div class="quick-row">
+          <button class="chip" onclick="quickFill('¿Dónde está el baño más cercano?', 'es-ES')">ES · Amenity</button>
+          <button class="chip" onclick="quickFill('Ma poitrine me fait mal et je ne respire pas bien', 'fr-FR')">FR · Critical</button>
+          <button class="chip" onclick="quickFill('Which gate is fastest to exit right now?', 'auto')">EN · Transit</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAP TAB (Judge Mode) -->
+  <section class="ops-column" data-mode-view="judge" data-tab="map" id="panel-map" role="tabpanel" aria-labelledby="tab-map">
+    <div class="panel">
+      <div class="panel-title-row">
+        <div>
+          <span class="eyebrow">Venue Map <span class="tag-chip tag-live">Live location</span></span>
+          <h2>MetLife Stadium — Real Coordinates</h2>
+        </div>
+      </div>
+      <p class="panel-desc">Actual World Cup 2026 final venue (East Rutherford, NJ). Gate markers are plotted at real approximate stadium coordinates; congestion levels are operator-simulated (see Simulate tab) since no live turnstile feed exists in this MVP.</p>
+      <div class="map-frame">
+        <div id="leaflet-map" role="img" aria-label="Map of MetLife Stadium showing gate and facility locations"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title-row">
+        <div>
+          <span class="eyebrow">Routing Engine <span class="tag-chip tag-code">Code, not prompt</span></span>
+          <h2>Safe Route Candidates</h2>
+        </div>
+      </div>
+      <p class="panel-desc">Computed in <code>routing.py</code>, independent of the LLM. Closed or &gt;85% capacity nodes are excluded here — the LLM is only allowed to phrase what's already been decided.</p>
+      <div id="routes-panel" class="routes-panel" aria-live="polite">Loading…</div>
+    </div>
+  </section>
+
+  <!-- SIMULATE TAB (Judge Mode) -->
+  <section class="ops-column" data-mode-view="judge" data-tab="simulate" id="panel-simulate" role="tabpanel" aria-labelledby="tab-simulate">
+    <div class="panel">
+      <div class="panel-title-row">
+        <div>
+          <span class="eyebrow">Simulation Controls <span class="tag-chip tag-sim">Simulated</span></span>
+          <h2>Operator Console</h2>
+        </div>
+      </div>
+      <p class="panel-desc">Sets test conditions for demoing the reasoning engine. Ambient temperature instead pulls from live weather — use "Refresh live weather" to re-sync it.</p>
+
+      <div class="god-grid">
+        <button class="god-btn caution" onclick="simulateOvercrowding()">Gate A Overcrowding</button>
+        <button class="god-btn critical" onclick="simulateIncident()">Gate A Hardware Blockage (Closed)</button>
+        <button class="god-btn live" onclick="refreshWeather()">
+          <svg class="icon" aria-hidden="true"><use href="#icon-refresh"/></svg> Refresh Live Weather
+        </button>
+        <button class="god-btn reset" onclick="resetState()">
+          <svg class="icon" aria-hidden="true"><use href="#icon-refresh"/></svg> Reset Simulation
+        </button>
+      </div>
+
+      <details class="raw-json">
+        <summary>Custom JSON override <svg class="icon chevron" aria-hidden="true"><use href="#icon-chevron"/></svg></summary>
+        <label for="custom-json" class="visually-hidden">Custom state JSON</label>
+        <textarea id="custom-json" rows="8" placeholder='{ "full_state": { ... } }'></textarea>
+        <button class="push-btn" onclick="pushCustomState()">Push State</button>
+      </details>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title-row">
+        <div>
+          <span class="eyebrow">Event Stream <span class="tag-chip tag-live">Event log</span></span>
+          <h2>State Pipeline</h2>
+        </div>
+      </div>
+      <p class="panel-desc">Append-only event log. Every simulation button above publishes a real event here, which mutates infrastructure state and is retained for audit.</p>
+      <div id="events-panel" class="events-panel" aria-live="polite">Loading…</div>
+    </div>
+  </section>
+
+  <!-- LOG TAB (Judge Mode) -->
+  <section class="ops-column" data-mode-view="judge" data-tab="log" id="panel-log" role="tabpanel" aria-labelledby="tab-log">
+    <div class="panel">
+      <div class="panel-title-row">
+        <div>
+          <span class="eyebrow">Supervisor Escalations <span class="tag-chip tag-live">Audit trail</span></span>
+          <h2>Escalation Feed</h2>
+        </div>
+      </div>
+      <p class="panel-desc">Created when a volunteer confirms "Notify Supervisor" on a critical/backup-flagged answer. Durable, timestamped, status-tracked — ready to wire to a real paging system.</p>
+      <div id="escalations-panel" class="escalations-panel" aria-live="polite">Loading…</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title-row">
+        <div>
+          <span class="eyebrow">Shift Log <span class="tag-chip tag-sim">Exportable</span></span>
+          <h2>Volunteer Session Transcript</h2>
+        </div>
+        <button class="push-btn export-btn" onclick="exportShiftLog()">
+          <svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg> Export CSV
+        </button>
+      </div>
+      <p class="panel-desc">Every query this console has handled this session, success or fallback.</p>
+      <div id="shiftlog-panel" class="shiftlog-panel" aria-live="polite">Loading…</div>
+    </div>
+
+    <details class="panel raw-state-block">
+      <summary><span class="eyebrow">Raw State</span> <svg class="icon chevron" aria-hidden="true"><use href="#icon-chevron"/></svg></summary>
+      <pre id="state-viewer">Loading…</pre>
+    </details>
+  </section>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

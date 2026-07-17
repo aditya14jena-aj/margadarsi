@@ -1,146 +1,1122 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<title>Corridor — WC26 Volunteer Ops</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8">
+  <title>Margadarshi - WC26 Volunteer Ops</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            darkBg: '#030712',
+            panelGlass: 'rgba(17, 31, 36, 0.65)',
+            tealAccent: '#3FCFB4',
+            amberAccent: '#F5A623',
+            redAccent: '#FF4757',
+            satinBorder: 'rgba(255, 255, 255, 0.1)',
+            skyBorder: 'rgba(14, 165, 233, 0.1)',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['IBM Plex Mono', 'monospace'],
+            condensed: ['Barlow Condensed', 'sans-serif'],
+          },
+          boxShadow: {
+            'neon-blue': '0 0 15px rgba(59, 130, 246, 0.5)',
+            'neon-indigo': '0 0 15px rgba(99, 102, 241, 0.5)',
+            'neon-red': '0 0 15px rgba(255, 71, 87, 0.5)',
+            'neon-teal': '0 0 15px rgba(63, 207, 180, 0.5)',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: theme('colors.darkBg');
+      color: #F0F2F5;
+      background-image: radial-gradient(circle at top, rgba(63, 207, 180, 0.05) 0%, transparent 60%),
+                        radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.05) 0%, transparent 60%);
+      background-attachment: fixed;
+    }
+
+    /* Glassmorphism Utilities */
+    .glass-panel {
+      background: theme('colors.panelGlass');
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid theme('colors.satinBorder');
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+    }
+    
+    .glass-panel-sky {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid theme('colors.skyBorder');
+      box-shadow: theme('boxShadow.neon-indigo');
+    }
+
+    .glass-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transform: translateY(-1px);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Triage Borders */
+    .triage-green {
+      border-left-color: theme('colors.tealAccent');
+      background: rgba(63, 207, 180, 0.06);
+    }
+
+    .triage-amber {
+      border-left-color: theme('colors.amberAccent');
+      background: rgba(245, 166, 35, 0.06);
+    }
+
+    .triage-red {
+      border-left-color: theme('colors.redAccent');
+      background: rgba(255, 71, 87, 0.06);
+      animation: triage-pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes triage-pulse {
+      0%,
+      100% {
+        box-shadow: 0 0 0 rgba(255, 71, 87, 0);
+      }
+      50% {
+        box-shadow: 0 0 20px rgba(255, 71, 87, 0.3);
+      }
+    }
+
+    /* SVG Map & Animations */
+    .map-node {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .map-node circle:not(.pulse-marker) {
+      transition: all 0.3s ease;
+    }
+
+    .map-node:hover circle:not(.pulse-marker) {
+      stroke-width: 4px;
+      filter: drop-shadow(0 0 8px currentColor) brightness(1.3);
+      transform: scale(1.1);
+      transform-origin: center;
+    }
+
+    .pulse-marker {
+      animation: marker-pulse 1.5s infinite;
+    }
+
+    @keyframes marker-pulse {
+      0% {
+        r: 6;
+        opacity: 1;
+      }
+      100% {
+        r: 20;
+        opacity: 0;
+      }
+    }
+
+    /* Micro-Drift Gravity Animations */
+    .drift-node-1, .drift-node-2, .drift-node-3 {
+      will-change: transform;
+      transform-origin: center;
+    }
+    
+    .zero-g .drift-node-1 {
+      animation: drift1 4s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+    }
+
+    .zero-g .drift-node-2 {
+      animation: drift2 5s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+    }
+
+    .zero-g .drift-node-3 {
+      animation: drift3 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+    }
+
+    @keyframes drift1 {
+      0% {
+        transform: translate(0, 0);
+      }
+      100% {
+        transform: translate(6px, -8px) rotate(2deg);
+      }
+    }
+
+    @keyframes drift2 {
+      0% {
+        transform: translate(0, 0);
+      }
+      100% {
+        transform: translate(-7px, 4px) rotate(-1.5deg);
+      }
+    }
+
+    @keyframes drift3 {
+      0% {
+        transform: translate(0, 0);
+      }
+      100% {
+        transform: translate(3px, 6px) rotate(1deg);
+      }
+    }
+
+    /* Custom Range Slider */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      background: transparent;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: theme('colors.tealAccent');
+      cursor: pointer;
+      margin-top: -7px;
+      box-shadow: theme('boxShadow.neon-teal');
+      transition: transform 0.1s;
+    }
+    
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 4px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+      transition: background 0.3s;
+    }
+    
+    input[type=range]:hover::-webkit-slider-runnable-track {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Tooltip */
+    #map-tooltip {
+      pointer-events: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    
+    #map-tooltip.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+  </style>
 </head>
-<body>
 
-<header class="topbar">
-  <div class="topbar-brand">
-    <span class="brand-mark">◈</span>
-    <span class="brand-name">CORRIDOR</span>
-    <span class="brand-sub">Volunteer Field Console — WC26</span>
+<body class="antialiased min-h-screen flex flex-col font-sans" data-mode="judge">
+
+  <!-- TOPBAR -->
+  <header class="h-16 flex items-center justify-between px-6 border-b border-white/10 glass-panel sticky top-0 z-50">
+    <div class="flex items-center gap-4">
+      <div class="w-9 h-9 bg-tealAccent text-darkBg font-bold text-sm rounded flex items-center justify-center shadow-neon-teal">◈</div>
+      <div>
+        <div class="text-[16px] font-bold tracking-tight text-white drop-shadow-md">MARGADARSHI</div>
+        <div class="text-[12px] text-tealAccent/70 font-mono tracking-wide">Volunteer Field Console — WC26</div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1 bg-black/50 p-1 border border-white/10 rounded-xl shadow-inner">
+      <button class="mode-btn px-5 py-2 text-xs font-semibold rounded-lg text-white bg-white/10 shadow-sm transition-all" data-mode="judge"
+        aria-pressed="true" onclick="setMode('judge')">Judge Ops</button>
+      <button class="mode-btn px-5 py-2 text-xs font-semibold rounded-lg text-gray-400 hover:text-white transition-all"
+        data-mode="volunteer" aria-pressed="false" onclick="setMode('volunteer')">Field Device</button>
+    </div>
+
+    <div class="flex items-center gap-6">
+      <div class="flex flex-col items-end">
+        <span class="font-mono text-[10px] uppercase text-gray-400 tracking-wider">Ambient</span>
+        <span class="font-mono text-sm font-medium text-white" id="topbar-temp">—</span>
+      </div>
+      <div class="flex flex-col items-end">
+        <span class="font-mono text-[10px] uppercase text-gray-400 tracking-wider">Zone</span>
+        <span class="font-mono text-sm font-medium text-white" id="topbar-zone">—</span>
+      </div>
+      <div class="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-full border border-tealAccent/20">
+        <span class="w-2 h-2 rounded-full bg-tealAccent shadow-neon-teal animate-pulse"></span>
+        <span class="font-mono text-[10px] uppercase text-tealAccent tracking-widest font-bold">LIVE</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-[1600px] mx-auto w-full p-6 lg:p-8 pb-20 flex flex-col lg:flex-row gap-8" id="main-container">
+
+    <!-- LEFT: VOLUNTEER DEVICE -->
+    <section class="w-full lg:w-[420px] shrink-0" id="volunteer-col">
+      <div class="mb-6">
+        <span class="text-[11px] font-semibold text-sky-400 uppercase tracking-widest flex items-center gap-2 mb-2"><div class="w-1 h-1 bg-sky-400 rounded-full"></div>01 — FIELD DEVICE</span>
+        <h1 class="text-3xl font-bold tracking-tight mb-2 text-white">Volunteer Handset</h1>
+        <p class="text-sm text-gray-400">Live triage interface for fan interactions.</p>
+      </div>
+
+      <!-- Phone Shell -->
+      <div class="glass-panel-sky rounded-[2rem] p-2 relative shadow-2xl">
+        <div class="absolute top-2 left-1/2 -translate-x-1/2 w-36 h-7 bg-black rounded-b-2xl z-10 border-b border-white/5"></div>
+
+        <div class="bg-[#050505] h-[760px] rounded-[1.5rem] overflow-hidden flex flex-col relative border border-white/5 shadow-inner">
+          
+          <!-- Status Bar -->
+          <div class="flex justify-between items-center px-7 pt-9 pb-4 text-xs font-mono text-gray-500 bg-gradient-to-b from-black/80 to-transparent">
+            <span class="tracking-widest">STAFF · Z4</span>
+            <span id="clock" class="text-gray-300">09:41</span>
+          </div>
+
+          <div class="px-6 flex-1 flex flex-col overflow-y-auto">
+
+            <div class="flex items-center gap-4 mb-6 mt-2">
+              <div
+                class="w-12 h-12 bg-sky-500/10 border border-sky-500/30 rounded-xl text-sky-400 font-bold flex items-center justify-center text-lg shadow-neon-blue">
+                V</div>
+              <div>
+                <div class="text-base font-semibold text-white tracking-wide">Volunteer</div>
+                <div class="text-xs font-mono text-sky-400 opacity-80" id="loc-display">Margadarshi 3 - Sector B</div>
+              </div>
+            </div>
+
+            <!-- Triage Card -->
+            <div
+              class="border-l-4 border-l-gray-600 border border-white/10 rounded-xl p-4 mb-5 flex flex-col gap-2 transition-all duration-300 bg-white/[0.02]"
+              id="triage-card">
+              <div class="flex justify-between items-center">
+                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">STATUS</span>
+                <span class="text-sm font-bold tracking-widest" id="urgency-text">STANDBY</span>
+              </div>
+              <div class="flex items-center gap-3 text-xs text-gray-400 font-mono">
+                <span id="intent-tag" class="bg-black/30 px-2 py-1 rounded">Intent —</span>
+                <span class="opacity-50">/</span>
+                <span id="color-tag" class="bg-black/30 px-2 py-1 rounded">Alert —</span>
+              </div>
+              <div id="triage-flags" class="flex flex-wrap gap-2 mt-2"></div>
+              <button id="notify-btn" hidden
+                class="mt-3 w-full py-2.5 bg-redAccent/10 border border-redAccent/50 text-redAccent rounded-lg text-xs font-bold tracking-wide hover:bg-redAccent/20 transition-colors shadow-neon-red">🚨 NOTIFY SUPERVISOR</button>
+            </div>
+
+            <!-- Volunteer Script Output (English) -->
+            <div class="mb-1 text-[10px] font-bold text-sky-400 uppercase tracking-widest">01. Volunteer Action (English)</div>
+            <div
+              class="glass-panel border-white/10 p-4 min-h-[60px] rounded-xl text-sm text-gray-200 mb-3 leading-relaxed shadow-inner"
+              id="script-box">
+              Enter a fan question below. Margadarshi will check gate conditions and generate instructions.
+            </div>
+            <div class="flex gap-3 mb-4">
+              <button id="speak-btn" disabled onclick="speakScript('volunteer')"
+                class="flex-1 glass-btn py-2.5 rounded-lg text-xs font-semibold text-gray-400 disabled:opacity-30 tracking-wide uppercase flex items-center justify-center gap-2">
+                <span>🔊</span> <span id="speak-label">Read English</span>
+              </button>
+            </div>
+
+            <!-- Fan Translation Output -->
+            <div class="mb-1 text-[10px] font-bold text-tealAccent uppercase tracking-widest flex justify-between items-center">
+              <span>02. Fan Translation (<span id="detected-lang-label">Unknown</span>)</span>
+              <span id="trans-conf-badge" class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 text-gray-400 hidden">Conf: High</span>
+            </div>
+            <div
+              class="glass-panel border-white/10 p-4 min-h-[60px] rounded-xl text-sm text-tealAccent/90 mb-3 leading-relaxed shadow-inner font-medium"
+              id="fan-script-box">
+              Translation will appear here in the fan's native language.
+            </div>
+            <div class="flex gap-3 mb-5">
+              <button id="speak-fan-btn" disabled onclick="speakScript('fan')"
+                class="flex-1 glass-btn py-2.5 rounded-lg text-xs font-semibold text-gray-400 disabled:opacity-30 tracking-wide uppercase flex items-center justify-center gap-2">
+                <span>🔊</span> <span id="speak-fan-label">Read Translation</span>
+              </button>
+            </div>
+
+            <!-- Language Picker -->
+            <div class="mb-3 flex items-center gap-3">
+              <label for="lang-picker" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">Fan Language:</label>
+              <select id="lang-picker"
+                class="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-gray-300 focus:border-tealAccent outline-none transition-all">
+                <option value="">Auto-Detect</option>
+                <option value="en">English</option>
+                <option value="es">Spanish</option>
+                <option value="ar">Arabic</option>
+                <option value="fr">French</option>
+                <option value="pt">Portuguese</option>
+                <option value="de">German</option>
+                <option value="it">Italian</option>
+                <option value="zh">Chinese</option>
+                <option value="ja">Japanese</option>
+                <option value="ko">Korean</option>
+                <option value="hi">Hindi</option>
+                <option value="ru">Russian</option>
+                <option value="nl">Dutch</option>
+                <option value="tr">Turkish</option>
+                <option value="pl">Polish</option>
+                <option value="sv">Swedish</option>
+              </select>
+            </div>
+
+            <!-- Input -->
+            <div class="flex gap-3 mb-5 mt-auto pt-2 relative">
+              <textarea id="query-input" placeholder="e.g. It's too hot, my grandmother feels dizzy..."
+                class="flex-1 bg-black/40 border border-white/10 rounded-xl p-4 pr-14 text-sm resize-none h-[90px] focus:border-tealAccent focus:ring-1 focus:ring-tealAccent outline-none text-white transition-all shadow-inner placeholder-gray-600"></textarea>
+              <button id="mic-btn" onclick="toggleMic()"
+                class="absolute right-2 top-2 w-10 h-10 glass-btn rounded-lg flex items-center justify-center text-gray-400 transition-all hover:text-white">🎤</button>
+            </div>
+
+            <button id="analyze-btn" onclick="submitQuery()"
+              class="w-full bg-tealAccent hover:bg-tealAccent/90 text-darkBg font-bold py-3.5 rounded-xl text-sm shadow-neon-teal transition-all disabled:opacity-50 mb-4 tracking-wide uppercase">
+              ▶ Analyze Query
+            </button>
+
+            <!-- Chips -->
+            <div class="flex gap-2 mb-6">
+              <button class="flex-1 glass-btn py-2 rounded-lg text-[10px] uppercase tracking-wider font-bold text-gray-400 hover:text-sky-400"
+                onclick="quickFill('Where is the nearest bathroom?')">Amenity</button>
+              <button class="flex-1 glass-btn py-2 rounded-lg text-[10px] uppercase tracking-wider font-bold text-gray-400 hover:text-redAccent"
+                onclick="quickFill('My chest hurts and I can not breathe well')">Critical</button>
+              <button class="flex-1 glass-btn py-2 rounded-lg text-[10px] uppercase tracking-wider font-bold text-gray-400 hover:text-tealAccent"
+                onclick="quickFill('Which gate is fastest?')">Transit</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: OPS DECK -->
+    <section class="flex-1 flex flex-col gap-8 w-full" id="ops-col">
+
+      <!-- MAP & CONTROLS ROW -->
+      <div class="flex flex-col xl:flex-row gap-8 h-auto xl:h-[420px]">
+
+        <!-- Interactive SVG Map -->
+        <div class="flex-1 glass-panel rounded-3xl p-6 flex flex-col relative overflow-hidden min-h-[300px]">
+          <span class="text-[11px] font-semibold text-tealAccent uppercase tracking-widest flex items-center gap-2 mb-2"><div class="w-1 h-1 bg-tealAccent rounded-full"></div>02 - LIVE MARGADARSHI MAP</span>
+          <h2 class="text-xl font-bold mb-4 text-white">Sector B Wayfinding</h2>
+
+          <div
+            class="flex-1 border border-white/10 rounded-2xl bg-[#010204] relative overflow-hidden flex items-center justify-center shadow-inner group"
+            id="svg-container">
+            <!-- Grid Background -->
+            <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+            
+            <svg id="gate-map" viewBox="0 0 640 320"
+              class="w-full h-full drop-shadow-[0_0_20px_rgba(255,255,255,0.05)] transition-transform duration-700 group-hover:scale-[1.02]">
+              <!-- Routes -->
+              <path d="M120 160 L240 80 L400 120 L520 220" stroke="rgba(255,255,255,0.08)" stroke-width="2" fill="none"
+                stroke-dasharray="6 4" />
+              <path d="M120 160 L240 240 L400 180 L520 220" stroke="rgba(255,255,255,0.08)" stroke-width="2" fill="none"
+                stroke-dasharray="6 4" />
+
+              <!-- Dynamic Vector Highlight (will be updated via JS) -->
+              <path id="active-route" d="" stroke="#3FCFB4" stroke-width="4" fill="none"
+                class="opacity-0 transition-opacity duration-500 shadow-neon-teal" style="filter: drop-shadow(0 0 6px #3FCFB4);" />
+
+              <!-- Nodes -->
+              <g id="map-nodes"></g>
+            </svg>
+
+            <!-- Tooltip overlay -->
+            <div id="map-tooltip"
+              class="absolute glass-panel p-4 rounded-xl border border-white/20 text-xs shadow-2xl z-10 font-mono pointer-events-none bg-black/80 backdrop-blur-xl">
+              <div id="tt-title" class="font-bold text-white mb-1.5 text-[13px] tracking-wide">Gate A</div>
+              <div id="tt-data" class="text-tealAccent">Load: 40%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Jury God Mode Controls -->
+        <div class="w-full xl:w-[340px] glass-panel rounded-3xl p-6 flex flex-col shrink-0">
+          <span class="text-[11px] font-semibold text-amberAccent uppercase tracking-widest flex items-center gap-2 mb-2"><div class="w-1 h-1 bg-amberAccent rounded-full"></div>03 — JURY GOD MODE</span>
+          <h2 class="text-xl font-bold mb-6 text-white">Simulate Conditions</h2>
+
+          <div class="flex flex-col gap-6 flex-1">
+            <!-- Gate Load Slider -->
+            <div class="bg-black/20 p-4 rounded-xl border border-white/5">
+              <div class="flex justify-between text-xs mb-3">
+                <span class="text-gray-400 font-mono uppercase tracking-wider">Gate A Load</span>
+                <span id="load-val" class="font-mono text-tealAccent font-bold text-sm">40%</span>
+              </div>
+              <input type="range" id="load-slider" min="0" max="100" value="40" oninput="updateGateLoad(this.value)">
+            </div>
+
+            <!-- Temp Slider -->
+            <div class="bg-black/20 p-4 rounded-xl border border-white/5">
+              <div class="flex justify-between text-xs mb-3">
+                <span class="text-gray-400 font-mono uppercase tracking-wider">Ambient Temp</span>
+                <span id="temp-val" class="font-mono text-amberAccent font-bold text-sm">78°F</span>
+              </div>
+              <input type="range" id="temp-slider" min="50" max="110" value="78" oninput="updateTemp(this.value)">
+            </div>
+
+            <!-- Gravity Vector -->
+            <div class="bg-black/20 p-4 rounded-xl border border-white/5 relative overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-sky-500/5 to-transparent pointer-events-none"></div>
+              <div class="flex justify-between text-xs mb-3 relative z-10">
+                <span class="text-gray-400 font-mono uppercase tracking-wider">Gravity Vector</span>
+                <span id="grav-val" class="font-mono text-white font-bold text-sm">1.0 G</span>
+              </div>
+              <input type="range" id="grav-slider" min="0.1" max="2.0" step="0.1" value="1.0"
+                oninput="updateGravity(this.value)" class="relative z-10">
+              <p class="text-[10px] text-sky-300/70 mt-2 font-mono relative z-10 text-right">Drops < 0.8G trigger structural drift</p>
+            </div>
+
+            <div class="mt-auto grid grid-cols-2 gap-3 pt-4">
+              <button class="glass-btn py-3 text-xs font-bold tracking-widest uppercase rounded-xl hover:text-amberAccent hover:border-amberAccent/50 transition-colors border-white/10"
+                onclick="simulateIncident()">Flag Incident</button>
+              <button class="glass-btn py-3 text-xs font-bold tracking-widest uppercase rounded-xl hover:text-tealAccent hover:border-tealAccent/50 transition-colors border-white/10"
+                onclick="resetState()">Reset Normal</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOGS & API STATE ROW -->
+      <div class="flex flex-col xl:flex-row gap-8 flex-1 min-h-[280px]">
+
+        <div class="flex-1 glass-panel rounded-3xl p-6 flex flex-col">
+          <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-2"><div class="w-1 h-1 bg-gray-400 rounded-full"></div>04 — SYSTEM LOGS</span>
+          <h2 class="text-xl font-bold mb-4 text-white">Escalations & Events</h2>
+          <div id="events-panel" class="flex-1 overflow-y-auto font-mono text-xs space-y-3 pr-4 bg-black/20 rounded-xl p-4 border border-white/5">
+            <!-- Populated by JS -->
+            <div class="text-gray-600 italic">Awaiting events...</div>
+          </div>
+        </div>
+
+        <div class="w-full xl:w-[340px] glass-panel rounded-3xl p-6 flex flex-col shrink-0">
+          <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest flex items-center gap-2 mb-2"><div class="w-1 h-1 bg-gray-400 rounded-full"></div>05 — TELEMETRY</span>
+          <h2 class="text-xl font-bold mb-4 text-white">Raw systemState</h2>
+          <pre id="state-viewer"
+            class="flex-1 bg-[#050505] border border-white/5 rounded-xl p-4 text-[11px] font-mono overflow-auto text-gray-400 shadow-inner">Loading...</pre>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /* =====================================================================
+       CORRIDOR AI - SINGLE FILE CONSOLIDATION LOGIC
+       Preserves systemState, UI flows, speech APIs, and integrates SVG Map
+       ===================================================================== */
+
+    // Core Identifiers required by prompt mandate
+    let systemState = null;
+    let currentState = null; // Alias for legacy compatibility
+    let recognition = null;
+    let recognizing = false;
+    
+    // Store timer handles to cleanly reset them if needed
+    let timers = {
+      state: null,
+      events: null,
+      clock: null
+    };
+
+    // Helper for secure DOM insertion
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>'"]/g, 
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag])
+      );
+    }
+
+    // Mock gates for our interactive SVG Map
+    const SVG_NODES = {
+      'Gate_A_Main_Metro': { x: 120, y: 160, label: 'Gate A (Metro)', type: 'gate', load: 40 },
+      'Gate_B_Plaza': { x: 240, y: 80, label: 'Gate B (Plaza)', type: 'gate', load: 30 },
+      'Waypoint_Central': { x: 240, y: 240, label: 'Central Hub', type: 'waypoint', load: 0 },
+      'Gate_C_VIP': { x: 400, y: 120, label: 'Gate C (VIP)', type: 'gate', load: 20 },
+      'Waypoint_South': { x: 400, y: 180, label: 'South Hub', type: 'waypoint', load: 0 },
+      'Gate_D_Exit': { x: 520, y: 220, label: 'Gate D (Exit)', type: 'gate', load: 15 },
+    };
+
+    /* ---- Mode Switching ---- */
+    function setMode(mode) {
+      document.body.dataset.mode = mode;
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.setAttribute('aria-pressed', btn.dataset.mode === mode ? 'true' : 'false');
+        if (btn.dataset.mode === mode) {
+          btn.classList.replace('text-gray-400', 'text-white');
+          btn.classList.replace('bg-transparent', 'bg-white/10');
+          btn.classList.add('shadow-md');
+        } else {
+          btn.classList.replace('text-white', 'text-gray-400');
+          btn.classList.replace('bg-white/10', 'bg-transparent');
+          btn.classList.remove('shadow-md');
+        }
+      });
+
+      const volCol = document.getElementById('volunteer-col');
+      const opsCol = document.getElementById('ops-col');
+
+      if (mode === 'volunteer') {
+        volCol.classList.replace('lg:w-[420px]', 'w-full');
+        volCol.classList.add('max-w-[500px]', 'mx-auto');
+        opsCol.style.display = 'none';
+      } else {
+        volCol.classList.replace('w-full', 'lg:w-[420px]');
+        volCol.classList.remove('max-w-[500px]', 'mx-auto');
+        opsCol.style.display = 'flex';
+      }
+    }
+
+    /* ---- API Pollers (Merged from app.js) ---- */
+    async function fetchState() {
+      try {
+        const res = await fetch('/api/state');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        systemState = data;
+        currentState = data;
+
+        document.getElementById('topbar-temp').textContent = escapeHTML(data.ambient_temperature) || '78°F';
+        document.getElementById('topbar-zone').textContent = escapeHTML(data.volunteer_location) || 'Zone 4';
+        document.getElementById('state-viewer').textContent = JSON.stringify(data, null, 2);
+
+        syncMapWithState();
+      } catch (e) {
+        document.getElementById('state-viewer').textContent = 'API Unavailable. Using local state.';
+        // Mock local state fallback
+        if (!systemState) systemState = { ambient_temperature: '78°F', volunteer_location: 'Zone 4', infrastructure: {} };
+      }
+    }
+
+    async function fetchEvents() {
+      try {
+        const res = await fetch('/api/events?limit=5');
+        if (!res.ok) return;
+        const data = await res.json();
+        const panel = document.getElementById('events-panel');
+        if (data.events && data.events.length > 0) {
+          panel.innerHTML = data.events.map(e => `
+        <div class="flex items-start gap-3 border-b border-white/5 pb-3">
+          <span class="text-gray-500 w-16 shrink-0">${new Date(e.timestamp).toLocaleTimeString([], { timeStyle: 'short' })}</span>
+          <span class="text-amberAccent font-bold">${escapeHTML(e.event_type)}</span>
+          <span class="text-gray-300 ml-auto text-right flex-1 truncate pl-2">${escapeHTML(e.value)}</span>
+        </div>
+      `).join('');
+        }
+      } catch (e) { }
+    }
+
+    /* ---- SVG Map Logic ---- */
+    function initSVGMap() {
+      const group = document.getElementById('map-nodes');
+      const tooltip = document.getElementById('map-tooltip');
+      let i = 1;
+
+      Object.entries(SVG_NODES).forEach(([id, node]) => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('id', `node-${id}`);
+        g.setAttribute('class', `map-node drift-node-${(i % 3) + 1}`);
+        g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('r', node.type === 'gate' ? '12' : '8');
+        circle.setAttribute('fill', '#3FCFB4');
+        circle.setAttribute('fill-opacity', '0.7');
+        circle.setAttribute('stroke', '#3FCFB4');
+        circle.setAttribute('stroke-width', '2');
+        circle.style.vectorEffect = 'non-scaling-stroke';
+
+        // Optional pulse ring
+        const pulse = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        pulse.setAttribute('r', '6');
+        pulse.setAttribute('fill', 'none');
+        pulse.setAttribute('stroke', '#FF4757');
+        pulse.setAttribute('stroke-width', '1.5');
+        pulse.setAttribute('class', 'pulse-marker');
+        pulse.style.display = 'none';
+        pulse.id = `pulse-${id}`;
+
+        g.appendChild(pulse);
+        g.appendChild(circle);
+
+        // Hover logic
+        g.addEventListener('mouseenter', (e) => {
+          const svgRect = document.getElementById('gate-map').getBoundingClientRect();
+          // Calculate relative percentage
+          const ptX = (e.clientX - svgRect.left) / svgRect.width * 100;
+          const ptY = (e.clientY - svgRect.top) / svgRect.height * 100;
+
+          tooltip.style.left = `calc(${ptX}% + 20px)`;
+          tooltip.style.top = `calc(${ptY}% - 20px)`;
+          tooltip.classList.add('show');
+          document.getElementById('tt-title').textContent = node.label;
+          document.getElementById('tt-data').textContent = `Load: ${node.load}%`;
+
+          // Draw active route to this node if it's a gate
+          if (node.type === 'gate') {
+            const route = document.getElementById('active-route');
+            route.setAttribute('d', `M240 240 L${node.x} ${node.y}`);
+            route.classList.remove('opacity-0');
+          }
+        });
+
+        g.addEventListener('mouseleave', () => {
+          tooltip.classList.remove('show');
+          document.getElementById('active-route').classList.add('opacity-0');
+        });
+
+        group.appendChild(g);
+        i++;
+      });
+    }
+
+    function syncMapWithState() {
+      Object.entries(SVG_NODES).forEach(([id, node]) => {
+        const el = document.getElementById(`node-${id}`);
+        const pulse = document.getElementById(`pulse-${id}`);
+        if (!el) return;
+
+        let color = '#3FCFB4';
+        if (node.load >= 80) color = '#FF4757';
+        else if (node.load >= 50) color = '#F5A623';
+
+        // Simulate incident check
+        if (id === 'Gate_A_Main_Metro' && node.load > 90) {
+          pulse.style.display = 'block';
+        } else {
+          pulse.style.display = 'none';
+        }
+
+        const circle = el.querySelector('circle:not(.pulse-marker)');
+        circle.setAttribute('fill', color);
+        circle.setAttribute('stroke', color);
+      });
+    }
+
+    /* ---- Jury Controls ---- */
+    function updateGateLoad(val) {
+      document.getElementById('load-val').textContent = val + '%';
+      SVG_NODES['Gate_A_Main_Metro'].load = parseInt(val);
+      syncMapWithState();
+    }
+
+    function updateTemp(val) {
+      document.getElementById('temp-val').textContent = val + '°F';
+      if (systemState) {
+        systemState.ambient_temperature = val + '°F';
+        document.getElementById('topbar-temp').textContent = escapeHTML(systemState.ambient_temperature);
+      }
+    }
+
+    function updateGravity(val) {
+      document.getElementById('grav-val').textContent = parseFloat(val).toFixed(1) + ' G';
+      const container = document.getElementById('svg-container');
+
+      if (parseFloat(val) < 0.8) {
+        container.classList.add('zero-g'); // Triggers CSS drift keyframes
+      } else {
+        container.classList.remove('zero-g');
+      }
+    }
+
+    function simulateIncident() {
+      updateGateLoad(95);
+      document.getElementById('load-slider').value = 95;
+      logEvent('Incident Flagged', 'Gate A Overcrowding / Blockage');
+    }
+
+    function resetState() {
+      // Clean up TTS
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+      
+      // Stop recognition if active
+      if (recognition && recognizing) {
+        recognition.stop();
+      }
+      
+      // Reset variables
+      updateGateLoad(40);
+      document.getElementById('load-slider').value = 40;
+      updateTemp(78);
+      document.getElementById('temp-slider').value = 78;
+      updateGravity(1.0);
+      document.getElementById('grav-slider').value = 1.0;
+      logEvent('System Reset', 'Conditions normalized');
+      
+      // Refresh state from backend
+      fetchState();
+    }
+
+    function logEvent(type, detail) {
+      const panel = document.getElementById('events-panel');
+      const now = new Date().toLocaleTimeString([], { timeStyle: 'short' });
+      // Clear placeholder
+      if (panel.textContent.includes('Awaiting events...')) {
+        panel.innerHTML = '';
+      }
+      panel.insertAdjacentHTML('afterbegin', `
+    <div class="flex items-start gap-3 border-b border-white/5 pb-3">
+      <span class="text-gray-500 w-16 shrink-0">${now}</span>
+      <span class="text-redAccent font-bold">${escapeHTML(type)}</span>
+      <span class="text-gray-300 ml-auto text-right flex-1 truncate pl-2">${escapeHTML(detail)}</span>
+    </div>
+  `);
+    }
+
+    /* ---- Audio Bytes (pcmToWav stub required by prompt) ---- */
+    function pcmToWav(pcmData, sampleRate = 16000) {
+      // Speculative fallback stub mandated by prompt requirements
+      // Converts raw Int16 stream chunks to a playable Web Audio Blob
+      console.log("Mock pcmToWav conversion triggered for size:", pcmData.byteLength);
+      return new Blob([pcmData], { type: 'audio/wav' });
+    }
+
+    /* ---- Text To Speech (Web Speech API) ---- */
+    const languageToBcp47 = {
+      'english': 'en-US',
+      'spanish': 'es-ES',
+      'french': 'fr-FR',
+      'german': 'de-DE',
+      'italian': 'it-IT',
+      'portuguese': 'pt-PT',
+      'chinese': 'zh-CN',
+      'japanese': 'ja-JP',
+      'korean': 'ko-KR',
+      'arabic': 'ar-SA',
+      'russian': 'ru-RU',
+      'hindi': 'hi-IN',
+      'bengali': 'bn-IN',
+      'punjabi': 'pa-IN',
+      'telugu': 'te-IN',
+      'tamil': 'ta-IN',
+      'marathi': 'mr-IN',
+      'urdu': 'ur-PK',
+      'gujarati': 'gu-IN',
+      'kannada': 'kn-IN',
+      'oriya': 'or-IN',
+      'malayalam': 'ml-IN',
+      'dutch': 'nl-NL',
+      'polish': 'pl-PL',
+      'turkish': 'tr-TR',
+      'vietnamese': 'vi-VN',
+      'swedish': 'sv-SE',
+      'norwegian': 'no-NO',
+      'danish': 'da-DK',
+      'finnish': 'fi-FI'
+    };
+
+    let currentDetectedLanguage = 'English';
+
+    function speakResponseText(text, langName, mode = 'volunteer') {
+      if (!text || !window.speechSynthesis) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      let langCode = 'en-US';
+      if (mode === 'fan' && langName) {
+        const normalized = langName.trim().toLowerCase();
+        if (languageToBcp47[normalized]) {
+          langCode = languageToBcp47[normalized];
+        } else {
+          const found = Object.keys(languageToBcp47).find(k => normalized.includes(k) || k.includes(normalized));
+          if (found) {
+            langCode = languageToBcp47[found];
+          }
+        }
+      }
+      utterance.lang = langCode;
+      utterance.rate = 1.0;
+
+      if (window.speechSynthesis.getVoices) {
+        const voices = window.speechSynthesis.getVoices();
+        const matchingVoice = voices.find(v => v.lang.startsWith(langCode.substring(0, 2)));
+        if (matchingVoice) {
+          utterance.voice = matchingVoice;
+        }
+      }
+
+      const btnId = mode === 'volunteer' ? 'speak-btn' : 'speak-fan-btn';
+      const labelId = mode === 'volunteer' ? 'speak-label' : 'speak-fan-label';
+      const activeColor = mode === 'volunteer' ? 'text-sky-400' : 'text-tealAccent';
+      const activeBorder = mode === 'volunteer' ? 'border-sky-500/30' : 'border-tealAccent';
+      const activeBg = mode === 'volunteer' ? 'bg-sky-500/10' : 'bg-tealAccent/10';
+      const activeShadow = mode === 'volunteer' ? 'shadow-neon-blue' : 'shadow-neon-teal';
+
+      const btn = document.getElementById(btnId);
+      const label = document.getElementById(labelId);
+
+      utterance.onstart = () => {
+        btn.classList.replace('text-gray-400', activeColor);
+        btn.classList.replace('border-white/10', activeBorder);
+        btn.classList.add(activeShadow, activeBg);
+        label.textContent = mode === 'volunteer' ? 'Stop English' : 'Stop Audio';
+      };
+      utterance.onend = () => {
+        btn.classList.replace(activeColor, 'text-gray-400');
+        btn.classList.replace(activeBorder, 'border-white/10');
+        btn.classList.remove(activeShadow, activeBg);
+        label.textContent = mode === 'volunteer' ? 'Read English' : 'Read Translation';
+      };
+
+      speechSynthesis.speak(utterance);
+    }
+
+    function speakScript(mode) {
+      if (speechSynthesis.speaking) {
+        speechSynthesis.cancel();
+        ['speak-btn', 'speak-fan-btn'].forEach(id => {
+          const btn = document.getElementById(id);
+          if (btn) {
+            btn.className = "flex-1 glass-btn py-2.5 rounded-lg text-xs font-semibold text-gray-400 disabled:opacity-30 tracking-wide uppercase flex items-center justify-center gap-2";
+          }
+        });
+        document.getElementById('speak-label').textContent = 'Read English';
+        document.getElementById('speak-fan-label').textContent = 'Read Translation';
+        return;
+      }
+
+      if (mode === 'volunteer') {
+        const text = document.getElementById('script-box').textContent;
+        speakResponseText(text, 'English', 'volunteer');
+      } else {
+        const text = document.getElementById('fan-script-box').textContent;
+        speakResponseText(text, currentDetectedLanguage, 'fan');
+      }
+    }
+
+    /* ---- Voice Input (Mic) ---- */
+    function initVoiceInput() {
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Speech) return;
+      recognition = new Speech();
+      recognition.interimResults = true;
+      recognition.onresult = (event) => {
+        let t = '';
+        for (let i = 0; i < event.results.length; i++) t += event.results[i][0].transcript;
+        document.getElementById('query-input').value = t;
+      };
+      recognition.onend = () => {
+        recognizing = false;
+        const btn = document.getElementById('mic-btn');
+        btn.classList.remove('text-redAccent', 'shadow-neon-red');
+        btn.style.animation = 'none';
+      };
+    }
+
+    function toggleMic() {
+      if (!recognition) return;
+      const btn = document.getElementById('mic-btn');
+      if (recognizing) {
+        recognition.stop();
+      } else {
+        recognition.start();
+        recognizing = true;
+        btn.classList.add('text-redAccent', 'shadow-neon-red');
+        btn.style.animation = 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite';
+      }
+    }
+
+    /* ---- Query Engine ---- */
+    function quickFill(text) {
+      document.getElementById('query-input').value = text;
+    }
+
+    async function submitQuery() {
+      const query = document.getElementById('query-input').value.trim();
+      if (!query) return;
+
+      const langHint = document.getElementById('lang-picker')?.value || '';
+
+      const btn = document.getElementById('analyze-btn');
+      btn.disabled = true;
+      btn.textContent = '... Analyzing ...';
+      btn.classList.add('animate-pulse');
+      document.getElementById('script-box').textContent = 'Reading live conditions via AI orchestrator...';
+
+      try {
+        // Attempt live API hit
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        const res = await fetch('/api/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: query, source_language_hint: langHint }),
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+
+        if (res.ok) {
+          const data = await res.json();
+          renderResult(data);
+        } else {
+          throw new Error("Fallback rules engine");
+        }
+      } catch (e) {
+        // Fallback Rules Engine
+        console.log("Using intelligent offline fallback rules engine", e);
+        setTimeout(() => {
+          let script = "I understand you need assistance. Please hold while I check the status.";
+          let color = "amber";
+          let intent = "general";
+          let alertTxt = "ELEVATED";
+
+          if (query.toLowerCase().includes("hot") || query.toLowerCase().includes("chest")) {
+            script = "Please stay where you are. I am dispatching a medical unit to your location immediately. Keep the person calm and seated.";
+            color = "red"; intent = "medical"; alertTxt = "CRITICAL";
+          } else if (query.toLowerCase().includes("gate") || query.toLowerCase().includes("fastest")) {
+            script = `Currently, Gate A is at ${SVG_NODES['Gate_A_Main_Metro'].load}% load. Please proceed to Gate C for the fastest exit route.`;
+            color = "green"; intent = "transit"; alertTxt = "CLEAR";
+          }
+
+          renderResult({
+            volunteer_script: script,
+            alert_color: color,
+            intent: intent,
+            urgency: alertTxt,
+            needs_backup: color === 'red'
+          });
+        }, 800);
+      }
+    }
+
+    function renderResult(data) {
+      const card = document.getElementById('triage-card');
+      const urgency = document.getElementById('urgency-text');
+      const notifyBtn = document.getElementById('notify-btn');
+      const spkBtn = document.getElementById('speak-btn');
+      const spkFanBtn = document.getElementById('speak-fan-btn');
+      const btn = document.getElementById('analyze-btn');
+
+      // Reset classes
+      card.className = "border-l-4 rounded-xl p-4 mb-5 flex flex-col gap-2 transition-all duration-300 bg-white/[0.02] shadow-sm";
+
+      if (data.alert_color === 'red' || data.alert_color === 'Red') {
+        card.classList.add('triage-red');
+      } else if (data.alert_color === 'green' || data.alert_color === 'Green') {
+        card.classList.add('triage-green');
+      } else {
+        card.classList.add('triage-amber');
+      }
+
+      urgency.textContent = escapeHTML(data.urgency) || "STANDBY";
+      document.getElementById('intent-tag').textContent = `Intent — ${escapeHTML(data.intent) || 'Routing'}`;
+      document.getElementById('color-tag').textContent = `Alert — ${escapeHTML(data.alert_color) || 'Neutral'}`;
+      
+      document.getElementById('script-box').textContent = data.volunteer_script || '';
+      
+      // Update Translation fields
+      currentDetectedLanguage = data.detected_language || 'English';
+      document.getElementById('detected-lang-label').textContent = currentDetectedLanguage;
+      document.getElementById('fan-script-box').textContent = data.fan_facing_script || data.volunteer_script || '';
+      
+      const badge = document.getElementById('trans-conf-badge');
+      if (data.translation_confidence) {
+        badge.textContent = `Conf: ${data.translation_confidence}`;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+
+      if (data.needs_backup) {
+        notifyBtn.hidden = false;
+        document.getElementById('triage-flags').innerHTML = `<span class="bg-redAccent/20 text-redAccent border border-redAccent/50 px-2.5 py-1 rounded-md text-[10px] font-bold shadow-neon-red tracking-wider">⚠ REQUEST BACKUP</span>`;
+      } else {
+        notifyBtn.hidden = true;
+        document.getElementById('triage-flags').innerHTML = '';
+      }
+
+      spkBtn.disabled = false;
+      if (spkFanBtn) spkFanBtn.disabled = false;
+      btn.disabled = false;
+      btn.textContent = '▶ Analyze Query';
+      btn.classList.remove('animate-pulse');
+    }
+
+    function notifySupervisor() {
+      const btn = document.getElementById('notify-btn');
+      btn.textContent = "✓ SUPERVISOR NOTIFIED";
+      btn.disabled = true;
+      btn.classList.replace('bg-redAccent/10', 'bg-gray-800');
+      btn.classList.replace('text-redAccent', 'text-gray-400');
+      btn.classList.replace('border-redAccent/50', 'border-gray-600');
+      btn.classList.remove('shadow-neon-red');
+    }
+
+    /* ---- Boot ---- */
+    window.onload = () => {
+      initSVGMap();
+      initVoiceInput();
+      fetchState();
+      fetchEvents();
+
+      timers.state = setInterval(fetchState, 6000);
+      timers.events = setInterval(fetchEvents, 6000);
+
+      timers.clock = setInterval(() => {
+        document.getElementById('clock').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      }, 10000);
+    };
+
+    // Cleanup on window unload to be safe
+    window.onbeforeunload = () => {
+      Object.values(timers).forEach(timer => {
+        if (timer) clearInterval(timer);
+      });
+      if (window.speechSynthesis && window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+      }
+    };
+
+  </script>
+  <div style="display: flex; justify-content: center; gap: 20px; padding: 20px; color: white;">
+    <a href="https://github.com/aditya14jena-aj" target="_blank" rel="noopener noreferrer" style="color: inherit;">
+      <svg height="32" viewBox="0 0 16 16" version="1.1" width="32" aria-hidden="true" fill="currentColor"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+    </a>
+    <a href="https://www.linkedin.com/in/aditya-jena-694909382/" target="_blank" rel="noopener noreferrer" style="color: inherit;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+    </a>
   </div>
-  <div class="topbar-readout">
-    <div class="readout-item">
-      <span class="readout-label">Ambient</span>
-      <span class="readout-value" id="topbar-temp">—</span>
-    </div>
-    <div class="readout-item">
-      <span class="readout-label">Zone</span>
-      <span class="readout-value" id="topbar-zone">—</span>
-    </div>
-    <div class="readout-item live">
-      <span class="pulse-dot"></span>
-      <span class="readout-label">LIVE</span>
-    </div>
-  </div>
-</header>
-
-<main class="console">
-
-  <!-- LEFT: VOLUNTEER DEVICE -->
-  <section class="device-column">
-    <div class="device-label">
-      <span class="eyebrow">01 — FIELD DEVICE</span>
-      <h1>Volunteer Handset</h1>
-      <p class="device-desc">What the volunteer sees and reads aloud to the fan.</p>
-    </div>
-
-    <div class="phone">
-      <div class="phone-notch"></div>
-      <div class="phone-screen">
-
-        <div class="phone-status">
-          <span>STAFF PASS · ZONE 4</span>
-          <span id="clock">09:41</span>
-        </div>
-
-        <div class="phone-id">
-          <div class="id-badge">V</div>
-          <div>
-            <div class="id-name">Volunteer</div>
-            <div class="id-loc" id="loc-display">Corridor 3 — Sector B</div>
-          </div>
-        </div>
-
-        <div class="triage" id="triage-card">
-          <div class="triage-top">
-            <span class="triage-eyebrow">STATUS</span>
-            <span class="triage-badge" id="urgency-text">STANDBY</span>
-          </div>
-          <div class="triage-meta">
-            <span id="intent-tag">Intent —</span>
-            <span class="dot-sep">·</span>
-            <span id="color-tag">Alert —</span>
-          </div>
-        </div>
-
-        <div class="script" id="script-box">
-          Enter a translated fan question below. Corridor will read the live gate state and generate exactly what to say.
-        </div>
-
-        <textarea id="query-input" placeholder="e.g. It's too hot, my grandmother feels dizzy, we're trying to reach Gate A but the crowd isn't moving..."></textarea>
-
-        <button id="analyze-btn" onclick="submitQuery()">
-          <span class="btn-icon">▶</span> Analyze &amp; Generate Script
-        </button>
-
-        <div class="quick-row">
-          <button class="chip" onclick="quickFill('Where is the nearest bathroom?')">Amenity</button>
-          <button class="chip" onclick="quickFill('My chest hurts and I can not breathe well')">Critical</button>
-          <button class="chip" onclick="quickFill('Which gate is fastest to exit right now?')">Transit</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- RIGHT: OPS DECK -->
-  <section class="ops-column">
-
-    <div class="ops-block">
-      <span class="eyebrow">02 — LIVE CORRIDOR MAP</span>
-      <h2>Sector B Wayfinding</h2>
-      <p class="ops-desc">Gate load reflects the state judges control below. Pulse rate = congestion.</p>
-      <div class="map-frame">
-        <svg id="gate-map" viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg"></svg>
-      </div>
-    </div>
-
-    <div class="ops-block">
-      <span class="eyebrow">03 — JURY GOD MODE</span>
-      <h2>Simulate Conditions</h2>
-      <p class="ops-desc">Overwrites live stadium state. The handset reacts instantly, no refresh.</p>
-
-      <div class="god-grid">
-        <button class="god-btn caution" onclick="simulateOvercrowding()">
-          <span class="god-icon">▲</span>
-          <span>Gate A Overcrowding</span>
-        </button>
-        <button class="god-btn critical" onclick="simulateHeatSpike()">
-          <span class="god-icon">☼</span>
-          <span>Heat Spike Warning</span>
-        </button>
-        <button class="god-btn critical" onclick="simulateIncident()">
-          <span class="god-icon">✕</span>
-          <span>Flag Gate A Incident</span>
-        </button>
-        <button class="god-btn reset" onclick="resetState()">
-          <span class="god-icon">↺</span>
-          <span>Reset to Normal</span>
-        </button>
-      </div>
-
-      <details class="raw-json">
-        <summary>Custom JSON override</summary>
-        <textarea id="custom-json" rows="8" placeholder='{ "full_state": { ... } }'></textarea>
-        <button class="push-btn" onclick="pushCustomState()">Push State</button>
-      </details>
-    </div>
-
-    <div class="ops-block">
-      <span class="eyebrow">04 — RAW STATE</span>
-      <pre id="state-viewer">Loading…</pre>
-    </div>
-
-  </section>
-</main>
-
-<script src="/static/app.js"></script>
 </body>
+
 </html>

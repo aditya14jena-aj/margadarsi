@@ -7,6 +7,7 @@ import csv
 import io
 import urllib.request
 import urllib.error
+import urllib.parse
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -19,6 +20,7 @@ from google import genai
 from google.genai import types
 
 import routing
+import crowd_sim
 
 # ---------------------------------------------------------------------------
 # Config
@@ -50,7 +52,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
 )
-log = logging.getLogger("corridor")
+log = logging.getLogger("margadarshi")
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -88,36 +90,36 @@ DEFAULT_STATE = {
     "ambient_temperature": None,  # populated from live weather on first load
     "infrastructure": {
         "Gate_A_Main_Metro": {
-            "status": "open", "capacity_load": "40%", "avg_wait_minutes": 5, "incident": "none",
-            "lat": 40.8149, "lng": -74.0725, "label": "Gate A — NJ Transit Rail Link"
+            "status": "open", "capacity_load": "30%", "avg_wait_minutes": 5, "incident": "none",
+            "lat": 40.8149, "lng": -74.0725, "label": "Gate A \u2014 NJ Transit Rail Link"
         },
         "Gate_B_West_Shuttle": {
             "status": "open", "capacity_load": "22%", "avg_wait_minutes": 3, "incident": "none",
-            "lat": 40.8128, "lng": -74.0774, "label": "Gate B — West Shuttle Lot"
+            "lat": 40.8128, "lng": -74.0774, "label": "Gate B \u2014 West Shuttle Lot"
         },
         "First_Aid_Station_Zone_3": {
-            "status": "operational", "distance_meters": 45,
-            "lat": 40.8138, "lng": -74.0748, "label": "First Aid — Sector B Concourse"
+            "status": "operational", "capacity_load": "8%", "avg_wait_minutes": 2, "incident": "none",
+            "lat": 40.8138, "lng": -74.0748, "label": "First Aid \u2014 Sector B Concourse"
         },
         "Cooling_Center_Sector_B": {
-            "status": "operational", "distance_meters": 15,
-            "lat": 40.8136, "lng": -74.0743, "label": "Cooling Center — Sector B"
+            "status": "operational", "capacity_load": "20%", "avg_wait_minutes": 1, "incident": "none",
+            "lat": 40.8136, "lng": -74.0743, "label": "Cooling Center \u2014 Sector B"
         },
         "Security_Post_Sector_B": {
-            "status": "operational", "distance_meters": 60,
-            "lat": 40.8140, "lng": -74.0747, "label": "Security Post — Sector B"
+            "status": "operational", "capacity_load": "40%", "avg_wait_minutes": 3, "incident": "none",
+            "lat": 40.8140, "lng": -74.0747, "label": "Security Post \u2014 Sector B"
         },
         "Lost_And_Found_Concourse": {
-            "status": "operational", "distance_meters": 90,
-            "lat": 40.8132, "lng": -74.0740, "label": "Lost & Found — Main Concourse"
+            "status": "operational", "capacity_load": "5%", "avg_wait_minutes": 2, "incident": "none",
+            "lat": 40.8132, "lng": -74.0740, "label": "Lost & Found \u2014 Main Concourse"
         },
         "Family_Reunification_Point": {
-            "status": "operational", "distance_meters": 70,
-            "lat": 40.8134, "lng": -74.0751, "label": "Family Reunification Point — Gate C Plaza"
+            "status": "operational", "capacity_load": "8%", "avg_wait_minutes": 2, "incident": "none",
+            "lat": 40.8134, "lng": -74.0751, "label": "Family Reunification Point \u2014 Gate C Plaza"
         },
         "Accessibility_Assist_Desk": {
-            "status": "operational", "distance_meters": 50,
-            "lat": 40.8137, "lng": -74.0745, "label": "Accessibility Assist Desk — Sector B"
+            "status": "operational", "capacity_load": "15%", "avg_wait_minutes": 2, "incident": "none",
+            "lat": 40.8137, "lng": -74.0745, "label": "Accessibility Assist Desk \u2014 Sector B"
         },
     },
 }
@@ -350,7 +352,7 @@ def shift_log_to_csv() -> str:
     return buf.getvalue()
 
 
-SYSTEM_PROMPT = """You are Corridor, the AI reasoning core for a World Cup volunteer field console. Minimize output text. No conversational filler.
+SYSTEM_PROMPT = """You are Margadarshi, the AI reasoning core for a World Cup volunteer field console. Minimize output text. No conversational filler.
 
 LANGUAGE PIPELINE:
 The fan's question in <query> may be in any spoken language (it comes from
@@ -485,6 +487,33 @@ def fallback_result(reason: str) -> dict:
     }
 
 
+def free_translate(text: str, target_lang_code: str) -> Optional[str]:
+    """
+    Translate text using the MyMemory free API (no API key required).
+    Returns translated string or None on failure.
+    Supports BCP-47 codes like 'es', 'fr', 'ar', 'hi', etc.
+    Rate limit: 500 requests/day for anonymous use.
+    """
+    if not text or not target_lang_code or target_lang_code == "en":
+        return None
+    try:
+        params = urllib.parse.urlencode({
+            "q": text[:500],
+            "langpair": f"en|{target_lang_code}",
+        })
+        url = f"https://api.mymemory.translated.net/get?{params}"
+        with urllib.request.urlopen(url, timeout=5) as resp:
+            data = json.loads(resp.read().decode())
+        translated = data.get("responseData", {}).get("translatedText", "")
+        quality = float(data.get("responseData", {}).get("match", 0))
+        if translated and quality > 0:
+            return translated
+        return None
+    except Exception as e:
+        log.warning("free_translate_failed lang=%s err=%s", target_lang_code, e)
+        return None
+
+
 # ---------------------------------------------------------------------------
 # Deterministic keyword-based intent guess. Used ONLY when the LLM call
 # itself fails/times out/is misconfigured — i.e. exactly the situation where
@@ -592,7 +621,12 @@ def refresh_weather():
 
 @app.route("/api/state", methods=["GET"])
 def get_state():
-    return jsonify(load_state())
+    state = load_state()
+    state["crowd_sim"] = {
+        "phase": crowd_sim.simulator.current_phase(),
+        "elapsed_minutes": round(crowd_sim.simulator.elapsed_minutes(), 1),
+    }
+    return jsonify(state)
 
 
 @app.route("/api/state", methods=["POST"])
@@ -728,7 +762,7 @@ def get_shift_log_route():
 @app.route("/api/shift-log/export", methods=["GET"])
 def export_shift_log():
     csv_text = shift_log_to_csv()
-    filename = f"corridor_shift_log_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv"
+    filename = f"margadarshi_shift_log_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv"
     return Response(
         csv_text,
         mimetype="text/csv",
@@ -780,59 +814,103 @@ def process_query():
 
     def respond_with_fallback(reason: str, intent_guess: Optional[str] = None):
         intent_guess = intent_guess or guess_intent_from_text(query_text)
-        script = routing.deterministic_fallback_script(intent_guess, infra)
-        result = fallback_result(reason)
-        result["query_id"] = query_id
-        result["intent"] = intent_guess
-        result["urgency"] = "Critical" if intent_guess in ("Medical", "Security") else "Low"
-        result["alert_color"] = "Red" if intent_guess in ("Medical", "Security") else "Green"
-        result["volunteer_script"] = script
-        result["fan_facing_script"] = script
-        result["detected_language"] = "unknown"
-        result["translation_confidence"] = "Low"
-        result["needs_backup"] = intent_guess in ("Medical", "Security", "LostPerson")
-        record_shift_entry({**result, "query_text": query_text, "source": "fallback"})
-        return jsonify(result), 200
+        # Detect language from the actual query text for better fan-facing output
+        detected_lang, lang_code = routing.detect_language(query_text)
+        # Override with volunteer's language hint if detection came back English
+        if detected_lang == "English" and source_language_hint and source_language_hint not in ("en", "en-US", "en-GB"):
+            # Strip region subtag for translation API
+            lang_code = source_language_hint.split("-")[0].lower()
+            detected_lang = source_language_hint
 
-    try:
-        response = get_client().models.generate_content(
-            model=app.config["MODEL_NAME"],
-            contents=prompt,
-            config=types.GenerateContentConfig(response_mime_type="application/json"),
+        # Build a rich, context-aware script using live routing data
+        smart = routing.smart_fallback_response(
+            intent=intent_guess,
+            live_infrastructure=infra,
+            query_text=query_text,
+            detected_language=detected_lang,
+            language_code=lang_code,
         )
-        raw = (response.text or "").strip()
-        result = json.loads(raw)
 
-        if not validate_llm_result(result):
-            log.warning("llm_schema_invalid raw=%s", raw[:300])
-            guessed = result.get("intent") if isinstance(result, dict) and result.get("intent") in VALID_INTENTS else None
-            return respond_with_fallback("schema_validation_failed", guessed)
+        # Attempt free translation for non-English fans
+        if lang_code != "en":
+            translated = free_translate(smart["volunteer_script"], lang_code)
+            if translated:
+                smart["fan_facing_script"] = translated
+                smart["translation_confidence"] = "Med"
 
-        # Step 2 — independent guardrail: does the generated script name a
-        # node that the routing engine excluded? If so, don't trust the
-        # LLM's phrasing — fall back to a template built directly from
-        # safe_routes.
-        violation = routing.validate_script_against_routes(result["volunteer_script"], infra)
-        if violation:
-            log.warning("route_guardrail_triggered reason=%s query=%r", violation, query_text)
-            fallback_script = routing.deterministic_fallback_script(result["intent"], infra)
-            result["volunteer_script"] = fallback_script
-            result["fan_facing_script"] = fallback_script
-            result["guardrail_override"] = True
+        smart["query_id"] = query_id
+        smart["safe_routes"] = safe_routes_payload
+        smart["volunteer_location"] = state.get("volunteer_location", "")
+        smart["error"] = False
+        smart["reason"] = reason
+        record_shift_entry({**smart, "query_text": query_text, "source": "smart_fallback"})
+        return jsonify(smart), 200
 
-        result.pop("error", None)
-        result["query_id"] = query_id
-        result["safe_routes"] = safe_routes_payload  # transparency: show what the engine actually allowed
-        result["volunteer_location"] = state.get("volunteer_location", "")
-        record_shift_entry({**result, "query_text": query_text, "source": "llm"})
-        return jsonify(result)
+    import time as _time
+    from google.genai import errors as _genai_errors
 
-    except json.JSONDecodeError as e:
-        log.error("llm_json_decode_error err=%s", e)
-        return respond_with_fallback("json_decode_error")
-    except Exception as e:
-        log.exception("llm_call_failed")
-        return respond_with_fallback(str(e))
+    _MAX_RETRIES = 4
+    _BASE_DELAY  = 5  # seconds
+
+    last_exc: Optional[Exception] = None
+    for attempt in range(_MAX_RETRIES):
+        try:
+            response = get_client().models.generate_content(
+                model=app.config["MODEL_NAME"],
+                contents=prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json"),
+            )
+            raw = (response.text or "").strip()
+            result = json.loads(raw)
+
+            if not validate_llm_result(result):
+                log.warning("llm_schema_invalid raw=%s", raw[:300])
+                guessed = result.get("intent") if isinstance(result, dict) and result.get("intent") in VALID_INTENTS else None
+                return respond_with_fallback("schema_validation_failed", guessed)
+
+            # Step 2 — independent guardrail: does the generated script name a
+            # node that the routing engine excluded? If so, don't trust the
+            # LLM's phrasing — fall back to a template built directly from
+            # safe_routes.
+            violation = routing.validate_script_against_routes(result["volunteer_script"], infra)
+            if violation:
+                log.warning("route_guardrail_triggered reason=%s query=%r", violation, query_text)
+                fallback_script = routing.deterministic_fallback_script(result["intent"], infra)
+                result["volunteer_script"] = fallback_script
+                result["fan_facing_script"] = fallback_script
+                result["guardrail_override"] = True
+
+            result.pop("error", None)
+            result["query_id"] = query_id
+            result["safe_routes"] = safe_routes_payload  # transparency: show what the engine actually allowed
+            result["volunteer_location"] = state.get("volunteer_location", "")
+            record_shift_entry({**result, "query_text": query_text, "source": "llm"})
+            return jsonify(result)
+
+        except json.JSONDecodeError as e:
+            log.error("llm_json_decode_error err=%s", e)
+            return respond_with_fallback("json_decode_error")
+
+        except (_genai_errors.ClientError, _genai_errors.ServerError) as e:
+            status = getattr(e, "status_code", 0)
+            # 429 RESOURCE_EXHAUSTED or 503 UNAVAILABLE — back off and retry
+            if status in (429, 503):
+                delay = _BASE_DELAY * (2 ** attempt)
+                log.warning("llm_transient_error status=%d attempt=%d/%d retry_in=%.1fs", status, attempt + 1, _MAX_RETRIES, delay)
+                last_exc = e
+                _time.sleep(delay)
+                continue
+            # Any other client/server error is not retryable
+            log.exception("llm_call_failed")
+            return respond_with_fallback(str(e))
+
+        except Exception as e:
+            log.exception("llm_call_failed")
+            return respond_with_fallback(str(e))
+
+    # All retries exhausted due to rate limiting — use deterministic fallback
+    log.error("llm_rate_limit_exhausted after %d attempts: %s", _MAX_RETRIES, last_exc)
+    return respond_with_fallback("rate_limit_exhausted")
 
 
 # ---------------------------------------------------------------------------
@@ -869,4 +947,5 @@ def set_security_headers(resp):
 
 if __name__ == "__main__":
     load_state()
+    crowd_sim.simulator.start(apply_event)
     app.run(debug=app.config["DEBUG"], host="0.0.0.0", port=app.config["PORT"])

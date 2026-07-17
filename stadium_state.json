@@ -1,10 +1,10 @@
 {
   "volunteer_location": "Corridor 3 - Sector B",
-  "ambient_temperature": "72F",
+  "ambient_temperature": "89F",
   "infrastructure": {
     "Gate_A_Main_Metro": {
-      "status": "CLOSED",
-      "capacity_load": "94%",
+      "status": "open",
+      "capacity_load": "27%",
       "avg_wait_minutes": 5,
       "incident": "none",
       "lat": 40.8149,
@@ -22,47 +22,58 @@
     },
     "First_Aid_Station_Zone_3": {
       "status": "operational",
-      "distance_meters": 45,
+      "capacity_load": "8%",
+      "avg_wait_minutes": 2,
+      "incident": "none",
       "lat": 40.8138,
       "lng": -74.0748,
       "label": "First Aid \u2014 Sector B Concourse"
     },
     "Cooling_Center_Sector_B": {
       "status": "operational",
-      "distance_meters": 15,
+      "capacity_load": "20%",
+      "avg_wait_minutes": 1,
+      "incident": "none",
       "lat": 40.8136,
       "lng": -74.0743,
       "label": "Cooling Center \u2014 Sector B"
     },
     "Security_Post_Sector_B": {
       "status": "operational",
-      "distance_meters": 60,
+      "capacity_load": "40%",
+      "avg_wait_minutes": 3,
+      "incident": "none",
       "lat": 40.814,
       "lng": -74.0747,
       "label": "Security Post \u2014 Sector B"
     },
     "Lost_And_Found_Concourse": {
       "status": "operational",
-      "distance_meters": 90,
+      "capacity_load": "5%",
+      "avg_wait_minutes": 2,
+      "incident": "none",
       "lat": 40.8132,
       "lng": -74.074,
       "label": "Lost & Found \u2014 Main Concourse"
     },
     "Family_Reunification_Point": {
       "status": "operational",
-      "distance_meters": 70,
+      "capacity_load": "8%",
+      "avg_wait_minutes": 2,
+      "incident": "none",
       "lat": 40.8134,
       "lng": -74.0751,
       "label": "Family Reunification Point \u2014 Gate C Plaza"
     },
     "Accessibility_Assist_Desk": {
       "status": "operational",
-      "distance_meters": 50,
+      "capacity_load": "15%",
+      "avg_wait_minutes": 1,
+      "incident": "none",
       "lat": 40.8137,
       "lng": -74.0745,
       "label": "Accessibility Assist Desk \u2014 Sector B"
     }
   },
-  "weather_source": "open-meteo.com (live)",
-  "weather_humidity_pct": 63
+  "weather_source": "open-meteo.com (live)"
 }

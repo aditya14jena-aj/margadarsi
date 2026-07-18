@@ -4,8 +4,8 @@
   "infrastructure": {
     "Gate_A_Main_Metro": {
       "status": "open",
-      "capacity_load": "27%",
-      "avg_wait_minutes": 5,
+      "capacity_load": "23%",
+      "avg_wait_minutes": 6,
       "incident": "none",
       "lat": 40.8149,
       "lng": -74.0725,
@@ -32,7 +32,7 @@
     "Cooling_Center_Sector_B": {
       "status": "operational",
       "capacity_load": "20%",
-      "avg_wait_minutes": 1,
+      "avg_wait_minutes": 2,
       "incident": "none",
       "lat": 40.8136,
       "lng": -74.0743,
@@ -41,7 +41,7 @@
     "Security_Post_Sector_B": {
       "status": "operational",
       "capacity_load": "40%",
-      "avg_wait_minutes": 3,
+      "avg_wait_minutes": 4,
       "incident": "none",
       "lat": 40.814,
       "lng": -74.0747,
@@ -59,7 +59,7 @@
     "Family_Reunification_Point": {
       "status": "operational",
       "capacity_load": "8%",
-      "avg_wait_minutes": 2,
+      "avg_wait_minutes": 3,
       "incident": "none",
       "lat": 40.8134,
       "lng": -74.0751,
